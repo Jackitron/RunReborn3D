@@ -22,4 +22,4 @@ RunReborn3D is based on the old Run series of flash games, RunReborn3D has sever
 
 ### Known Issues
  - Wii version currently takes a long time to boot due to asset loading.
- - The 3DS Lighting differs from PC lighting. This is a hardware issue, possibly resolved in next ovtave update.
+ - Soundtrack is locked to 22k quality to reduce file size for Wii
