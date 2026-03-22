@@ -177,9 +177,16 @@ function playerAnimator:Tick(delta)
 		self.jumpTime = 0
 	end
 	
-	-- Or rotate chunks
-	local leftPress = Input.IsGamepadPressed(Gamepad.L1 | Gamepad.C)
-	local rightPress = Input.IsGamepadPressed(Gamepad.R1 | Gamepad.Z)
+	-- Or rotate chunks (Gamepad.C was not the Nunchuck C button!)
+	local leftPress = Input.IsGamepadPressed(Gamepad.L1)
+	local rightPress = Input.IsGamepadPressed(Gamepad.R1)
+	
+	-- I think these are nunchuck values? Might need to re-check as A | B was not returning the mask...
+	if Engine.GetPlatform() == "Wii" then
+		leftPress = Input.IsGamepadPressed(Gamepad.C)
+		rightPress = Input.IsGamepadPressed(Gamepad.Z)
+	end
+	
 	if leftPress then
 		self.rotationTarget.z = self.rotationTarget.z + 90.0
 	end

@@ -3,22 +3,23 @@ gameCtrl = {}
 
 -- Setup game variables
 function gameCtrl:Create()
+	-- Init bottom screen with an image (to prove we can!)
 	if (Engine.GetPlatform() == "3DS") then
 		Engine.GetWorld(2):LoadScene("blankbottomscreen")
 		Log.Enable(false)
-	else
-		Log.Enable(true)
 	end
+	
+	if (Engine.GetPlatform() == "Wii") then
+		Log.Enable(false)
+	end
+	-- may implement gravity as a varying force i.e. turned off when touching floor to add floatiness
 	Engine.GetWorld(1):SetGravity(Vec(0,0,0))
 	
-	-- Audio is done in this script. There is a node for this:
+	-- Audio is done in this script. Unfortunately the original audio loader kept causing crashes,
+	-- so the code was changed to use three compressed tracks at 1/8th the size, allowing all three to be in RAM.
 	self.musicNode = nil
-	-- There are 3 main tracks in the game, loaded/streamed asynchronously.
-	self.bgmNames = { "Infinity_Road","Amen_Nebula", "Tunnel_of_Dreams"}
-	-- modulates by three. lua indexes from 1
+		-- modulates by three. lua indexes from 1
 	self.bgmIndex = 1
-	-- and the soundwave reference!
-	self.bgm = nil
 	
 	-- Like title but set rather than add in this case
 	self.skyBoxRot = Vec(0,0,0)
@@ -57,17 +58,16 @@ function gameCtrl:Create()
 	-- Level data. Small isn't it?
 		-- you can edit them by dragging them to the top!
 	self.LEVELS = {
-		"=L=R=AEIKJ=GRI#", --level 1 : welcome, clumsy
+		"==L=R=AEIKJ=GRI#", --level 1 : welcome, clumsy
 		"=GLRLSKKOEZXC=FXZKOG#", --level 2 : sideward
 		"=LIPOQZOOPIOZ#", --level 3 : upside up
 		"=ZOIOZGAFSF=#", --level 4 : faith
-		"=TSLCTSLTHDPR#", --level 5: copycat
+		"=TSLCTSLTHQPR#", --level 5: copycat
 		"=AVSVOAVSV=#", --level 6 : no jumping
-		"=RLAE=ETZS=ASSV=#", --level 7 : ready or not
-		"=EKTFHOAZXCV=KOGTJO=#", --level 8 : twisty trail
-		"=QPGAOHAAZGAOHAATGAQQHA#", --level 9 : it's all a haze
-		"=QTIJQAPTLCRIJAQPQ#",--level 10: Get Jumpy
-		"=QPIPRPLPQHGHGI#", --level 11: the end
+		"=EKTFHOAZXCV=KOGTJO=#", --level 7 : twisty trail
+		"=QPGAOHAAZHATQQIA#", --level 8 : it's all a haze
+		"=QTIJQAPTLCRIJAQPQ#",--level 9: Get Jumpy
+		"=QPIPRPLPQHGHGI#", --level 10: the end
 		"=O=FO=OF#", --thanks for playing
 		"=O=OFFO=#", --more to come
 		"===!P!P!PPPPP", ---Jackitron
@@ -109,14 +109,14 @@ function gameCtrl:Create()
 	--Log.Debug(self.CHUNKDATA["x"]:GetName())
 	-- And level colours
 	self.COLOURS = {
-		Vec(0.1, 0.4, 1.0), --blue
+		Vec(0.2, 0.4, 1.0), --blue
 		Vec(0.0, 0.7, 0.9), --cyan
 		Vec(0.2, 1.0, 0.4), --green
 		Vec(1.0, 0.8, 0.0), --yellow
 		Vec(1.0, 0.7, 0.1), --orange
 		Vec(0.7, 0.7, 0.7), --grey
 		Vec(1.0, 0.1, 0.1), --red
-		Vec(0.8, 0.0, 0.6), --purple
+		Vec(0.8, 0.3, 0.6), --purple
 	}
 end
 
@@ -129,26 +129,24 @@ function gameCtrl:Start()
 	self.camera = self:GetWorld():FindNode("camera")
 	self.levelText = self:GetWorld():FindNode("level_text")
 	self.player = self:GetWorld():FindNode("player_ins")
-	self.musicNode = self:GetWorld():FindNode("music_player")
 	
 	-- And make a new level!
 	self:RestartLevel()
 	self.showLevelTime = self.TWO_SECONDS
 	
-	-- And start playing music track 1
+	--start playing track 1:
 	self:NextBGM()
 end
 
 -- Playlist of game music tracks - could be a callback if OCTAVE's AssetManager has callbacks!
 function gameCtrl:NextBGM()
-	--out with old
-	self.bgm = LoadAsset(self.bgmNames[self.bgmIndex])
-	self.musicNode:SetSoundWave(self.bgm)
+	-- change the node reference to keep an eye on the playing state
+	self.musicNode = self:GetWorld():FindNode("track" .. self.bgmIndex)
 	self.musicNode:ResetAudio()
 	self.musicNode:PlayAudio()
-	self.bgmPlaying = true
+	--Log.Debug("track" .. self.bgmIndex)
 	
-	--for next time
+	--loop playlist
 	self.bgmIndex = self.bgmIndex + 1
 	if self.bgmIndex > 3 then
 		self.bgmIndex = 1
@@ -223,13 +221,13 @@ function gameCtrl:Tick(delta)
 				self.targetColour = self.COLOURS[ 1+(self.levelNumber % 8) ]
 				self.levelNumber = self.levelNumber + 1
 				self.levelText:SetText("LEVEL " .. tostring(self.levelNumber))
-				if self.levelNumber == 12 then
+				if self.levelNumber == 11 then
 					self.levelText:SetText("Thanks for playing...")
 				end
-				if self.levelNumber == 13 then
+				if self.levelNumber == 12 then
 					self.levelText:SetText("...more to come?")
 				end
-				if self.levelNumber == 14 then
+				if self.levelNumber == 13 then
 					self.levelText:SetText("-Jackitron")
 				end
 				self.showLevelTime = self.TWO_SECONDS
